@@ -11,10 +11,13 @@ namespace WebSiteCrawler
     public static class Settings
     {
         static FlowLayoutPanel flp;
-        static int webSiteNumber = 0, controlsY = 0, counter = 1;
+        static int webSiteNumber = 1, controlsY = 0, counter = 1;
 
         public static void EditSettings(List<Tuple<string, string>> settings)
         {
+            webSiteNumber = 1;
+            counter = 1;
+
             Form form = new Form
             {
                 AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F),
@@ -53,8 +56,6 @@ namespace WebSiteCrawler
 
             foreach (Tuple<string, string> tuple in settings)
             {
-                if (tuple.Item1.Contains("website"))
-                    webSiteNumber++;
                 AddElements(tuple.Item1, tuple.Item2);
             }
 
@@ -93,21 +94,25 @@ namespace WebSiteCrawler
                 {
                     string lblName = string.Concat("label", x.ToString());
                     string txtName = string.Concat("textbox", x.ToString());
+                    var test = lblName.ToString();
+                    var test2 = flp.Controls.Find(test, true);
+                    var test3 = test2[0];
+                    var test4 = test3.ToString();
                     string key = flp.Controls.Find(lblName.ToString(), true)[0].Text.ToString();
                     string value = flp.Controls.Find(txtName.ToString(), true)[0].Text.ToString();
 
-                    value = AES.EncryptString(value);
 
                     var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-                    if (ConfigurationManager.AppSettings[key] == null)
-                        config.AppSettings.Settings.Add(key, value);
+
+                    if (string.IsNullOrEmpty(value) && (!key.Equals("username") || !key.Equals("password") || !key.Equals("website1")))
+                        config.AppSettings.Settings.Remove(key);
                     else
                     {
-                        if (string.IsNullOrEmpty(value) && (!key.Equals("username") || !key.Equals("password") || !key.Equals("website1")))
-                            config.AppSettings.Settings.Remove(key);
+                        value = AES.EncryptString(value);
+                        if (ConfigurationManager.AppSettings[key] == null)
+                            config.AppSettings.Settings.Add(key, value);
                         else
                             config.AppSettings.Settings[key].Value = value;
-
                     }
 
                     config.Save(ConfigurationSaveMode.Modified);
@@ -144,6 +149,8 @@ namespace WebSiteCrawler
 
         private static void AddElements(string label, string text = "")
         {
+            if (label.Contains("website"))
+                webSiteNumber++;
             Label label1 = new Label
             {
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
@@ -175,9 +182,6 @@ namespace WebSiteCrawler
 
             controlsY += 25;
             counter++;
-
-            if (label.Contains("website"))
-                webSiteNumber++;
         }
     }
 }

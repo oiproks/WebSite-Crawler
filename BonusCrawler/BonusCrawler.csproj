@@ -156,7 +156,6 @@
     <EmbeddedResource Include="Testing.resx">
       <DependentUpon>Testing.cs</DependentUpon>
     </EmbeddedResource>
-    <None Include="BonusCrawler_TemporaryKey.pfx" />
     <None Include="packages.config" />
     <None Include="Properties\app.manifest" />
     <None Include="Properties\Settings.settings">
