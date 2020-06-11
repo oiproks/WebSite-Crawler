@@ -119,7 +119,6 @@
             this.Controls.Add(this.flowLayoutPanel1);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.button1);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "Testing";
             this.Text = "Testing";
             this.flowLayoutPanel1.ResumeLayout(false);

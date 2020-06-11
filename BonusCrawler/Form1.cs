@@ -85,12 +85,21 @@ namespace WebSiteCrawler
 
                         if (siteUrl.Contains("minambiente"))
                         {
-                            // You may want to remove this one. I made it to make the code shorter
                             code = code.Substring(0, code.IndexOf("<!-- Page cached by Boost"));
-                            code = RemovePortion(code, "<head>", "</head>");
+                            code = RemovePortion(code, "<html>", "</head>");
                             code = RemovePortion(code, "<header", "</header>");
                             code = RemovePortion(code, "<footer", "</footer>");
                             code = RemovePortion(code, "<script", "</script>");
+                        } else if (siteUrl.Contains("beerwulf"))
+                        {
+                            int start = code.IndexOf("<div class=\"detail-content-block\">");
+                            int end = code.IndexOf("<div class=\"fixed-content-container\">");
+                            code = code.Substring(start, end-start);
+                            if (code.ToLower().Contains("esaurito"))
+                                code = "No Beer";
+                            else
+                                code = "Yes Beer!";
+                                
                         }
                         return code;
                     }
