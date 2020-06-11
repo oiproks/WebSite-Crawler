@@ -10,7 +10,7 @@ namespace WebSiteCrawler
 {
     public static class Settings
     {
-        static FlowLayoutPanel flp;
+        static Panel panel;
         static int webSiteNumber = 1, controlsY = 0, counter = 1;
 
         public static void EditSettings(List<Tuple<string, string>> settings)
@@ -24,12 +24,15 @@ namespace WebSiteCrawler
                 AutoScaleMode = AutoScaleMode.Font,
                 BackColor = System.Drawing.Color.White,
                 ClientSize = new System.Drawing.Size(237, 250),
-                FormBorderStyle = FormBorderStyle.None,
+                MinimumSize = new System.Drawing.Size(253, 290),
+                FormBorderStyle = FormBorderStyle.SizableToolWindow,
                 Name = "Test",
                 StartPosition = FormStartPosition.CenterScreen,
                 Text = "Test",
                 TopMost = true
             };
+
+            form.FormClosing += Form_FormClosing;
 
             Label lblSettings = new Label
             {
@@ -44,14 +47,16 @@ namespace WebSiteCrawler
                 TextAlign = System.Drawing.ContentAlignment.MiddleCenter
             };
 
-            flp = new FlowLayoutPanel
+            panel = new Panel
             {
                 AutoScroll = true,
+                Anchor = (AnchorStyles.Bottom | AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right),
                 BackColor = System.Drawing.Color.Transparent,
                 Location = new System.Drawing.Point(12, 35),
                 Margin = new Padding(0),
                 Name = "flp",
-                Size = new System.Drawing.Size(213, 170)
+                Size = new System.Drawing.Size(213, 170),
+                MinimumSize = new System.Drawing.Size(213, 170)
             };
 
             foreach (Tuple<string, string> tuple in settings)
@@ -59,53 +64,39 @@ namespace WebSiteCrawler
                 AddElements(tuple.Item1, tuple.Item2);
             }
 
-            Button button1 = new Button
+            Button btnSave = new Button
             {
-                BackColor = System.Drawing.Color.Transparent,
-                BackgroundImage = Properties.Resources.back,
-                BackgroundImageLayout = ImageLayout.Zoom,
-                FlatStyle = FlatStyle.Flat,
-                Location = new System.Drawing.Point(145, 208),
-                Name = "button1",
-                Size = new System.Drawing.Size(30, 30),
-                UseVisualStyleBackColor = false,
-                DialogResult = DialogResult.Cancel
-            };
-            button1.FlatAppearance.BorderColor = System.Drawing.Color.Black;
-            button1.Click += (sender, e) => {
-                form.Close();
-            };
-
-            Button button2 = new Button
-            {
+                Anchor = AnchorStyles.Right | AnchorStyles.Bottom,
                 BackColor = System.Drawing.Color.Transparent,
                 BackgroundImage = Properties.Resources.save,
                 BackgroundImageLayout = ImageLayout.Zoom,
                 FlatStyle = FlatStyle.Flat,
                 Location = new System.Drawing.Point(195, 208),
-                Name = "button2",
+                Name = "Save",
                 Size = new System.Drawing.Size(30, 30),
                 UseVisualStyleBackColor = false,
                 DialogResult = DialogResult.OK
             };
-            button2.FlatAppearance.BorderColor = System.Drawing.Color.Black;
-            button2.Click += (sender, e) => {
-                for (int x = 1; x <= flp.Controls.Count / 2; x++)
+            btnSave.FlatAppearance.BorderColor = System.Drawing.Color.Black;
+            btnSave.Click += (sender, e) => {
+                for (int x = 1; x <= panel.Controls.Count / 2; x++)
                 {
                     string lblName = string.Concat("label", x.ToString());
                     string txtName = string.Concat("textbox", x.ToString());
                     var test = lblName.ToString();
-                    var test2 = flp.Controls.Find(test, true);
+                    var test2 = panel.Controls.Find(test, true);
                     var test3 = test2[0];
                     var test4 = test3.ToString();
-                    string key = flp.Controls.Find(lblName.ToString(), true)[0].Text.ToString();
-                    string value = flp.Controls.Find(txtName.ToString(), true)[0].Text.ToString();
+                    string key = panel.Controls.Find(lblName.ToString(), true)[0].Text.ToString();
+                    string value = panel.Controls.Find(txtName.ToString(), true)[0].Text.ToString();
 
 
                     var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
 
                     if (string.IsNullOrEmpty(value) && (!key.Equals("username") || !key.Equals("password") || !key.Equals("website1")))
+                    {
                         config.AppSettings.Settings.Remove(key);
+                    }
                     else
                     {
                         value = AES.EncryptString(value);
@@ -118,11 +109,14 @@ namespace WebSiteCrawler
                     config.Save(ConfigurationSaveMode.Modified);
                     ConfigurationManager.RefreshSection("appSettings");
                 }
+                controlsY = 0;
+                counter = 0;
                 form.Close();
             };
 
-            Button button3 = new Button
+            Button btnAdd = new Button
             {
+                Anchor = AnchorStyles.Left | AnchorStyles.Bottom,
                 BackColor = System.Drawing.Color.Transparent,
                 BackgroundImage = Properties.Resources.add,
                 BackgroundImageLayout = ImageLayout.Zoom,
@@ -132,28 +126,43 @@ namespace WebSiteCrawler
                 Size = new System.Drawing.Size(30, 30),
                 UseVisualStyleBackColor = false
             };
-            button3.FlatAppearance.BorderColor = System.Drawing.Color.Black;
-            button3.Click += (sender, e) => {
+            btnAdd.FlatAppearance.BorderColor = System.Drawing.Color.Black;
+            btnAdd.Click += (sender, e) => {
                 string label = string.Concat("website", webSiteNumber.ToString());
                 AddElements(label);
             };
 
             form.Controls.Add(lblSettings);
-            form.Controls.Add(flp);
-            form.Controls.Add(button3);
-            form.Controls.Add(button2);
-            form.Controls.Add(button1);
+            form.Controls.Add(panel);
+            form.Controls.Add(btnAdd);
+            form.Controls.Add(btnSave);
 
             form.ShowDialog();
         }
 
+        private static void Form_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            controlsY = 0;
+            counter = 0;
+        }
+
         private static void AddElements(string label, string text = "")
         {
+            int width = panel.Size.Width - 70;
             if (label.Contains("website"))
-                webSiteNumber++;
+            {
+                TextBox prev = (TextBox)panel.Controls.Find(string.Format("textbox{0}", (counter - 1).ToString()), false).First();
+                width = prev.Size.Width;
+                if (//panel.Controls.Count >= 6 &&
+                    prev.Location.Y + 43 >= panel.Size.Height &&
+                    !panel.VerticalScroll.Visible)
+                    width -= SystemInformation.VerticalScrollBarWidth;
+
+                webSiteNumber = int.Parse(label.Substring(label.Length - 1)) + 1;
+            }
             Label label1 = new Label
             {
-                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+                Anchor = (AnchorStyles.Top | AnchorStyles.Left),
                 AutoSize = false,
                 Location = new System.Drawing.Point(0, controlsY),
                 Name = string.Format("label{0}", counter.ToString()),
@@ -164,21 +173,21 @@ namespace WebSiteCrawler
                 TextAlign = System.Drawing.ContentAlignment.MiddleLeft
 
             };
-
+            
             TextBox textBox1 = new TextBox
             {
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
                 BackColor = System.Drawing.SystemColors.Window,
                 Location = new System.Drawing.Point(63, controlsY),
-                Name = string.Format("textbox{0}", counter),
-                Size = new System.Drawing.Size(130, 20),
+                Name = string.Format("textbox{0}", counter.ToString()),
+                Size = new System.Drawing.Size(width, 20),
                 Text = text
             };
             if (label.Equals("password"))
                 textBox1.PasswordChar = '*';
 
-            flp.Controls.Add(label1);
-            flp.Controls.Add(textBox1);
+            panel.Controls.Add(label1);
+            panel.Controls.Add(textBox1);
 
             controlsY += 25;
             counter++;
