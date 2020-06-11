@@ -25,7 +25,6 @@ namespace WebSiteCrawler
         private int sleep = 10000;
         private int counter = 0;
         private bool running = false;
-        private const string SEPARATOR = "=^..^=   =^..^=   =^..^=    =^..^=    =^..^= ";
         private const string LATEST_UPDATE = "Latest update: {0}";
         private const string CYCLE_COUNTER = "I've checked {0} times";
         List<Thread> threadList;
@@ -109,16 +108,6 @@ namespace WebSiteCrawler
                 }
             } catch (Exception ex)
             {
-                this.Invoke(new Action(() =>
-                {
-                    MessageBox.Show(
-                    this,
-                    ex.Message,
-                    "ERROR",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Exclamation);
-                }));
-
                 WriteCodeOnFile(ex.Message);
             }
             return string.Empty;
@@ -147,20 +136,7 @@ namespace WebSiteCrawler
 
         private void WriteCodeOnFile(string code)
         {
-            code = string.Concat(
-                SEPARATOR, 
-                Environment.NewLine, Environment.NewLine,
-                string.Format("Last Edit: {0}{1}{2}",
-                    DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"), 
-                    Environment.NewLine, 
-                    code),
-                Environment.NewLine, Environment.NewLine
-                );
-
-            using (StreamWriter outputFile = new StreamWriter(Path.Combine(Environment.CurrentDirectory, "html.txt"), append: true))
-            {
-                outputFile.WriteLine(code);
-            }
+            Singleton.Instance.WOF(code);
         }
 
         private void CheckForNews(string siteUrl)
@@ -215,7 +191,7 @@ namespace WebSiteCrawler
                             Tuple<bool, string> answer = mailSender.sendMail(subject, message);
                             if (!answer.Item1)
                             {
-                                message = string.Concat(message, Environment.NewLine, string.Format("Unable to send mail:\r\n{0}", answer.Item2));
+                                WriteCodeOnFile(string.Concat(message, Environment.NewLine, string.Format("Unable to send mail:\r\n{0}", answer.Item2)));
                             }
                         }
                         else
